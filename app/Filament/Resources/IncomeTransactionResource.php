@@ -17,29 +17,80 @@ class IncomeTransactionResource extends Resource
 {
     protected static ?string $model = IncomeTransaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-up';
+    protected static ?string $navigationGroup = 'Transaksi';
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Pemasukan';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Transaksi Pemasukan';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Transaksi Pemasukan';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('transaction_code')
-                    ->required(),
+                    ->label('Kode Transaksi')
+                    ->default(fn () => 'INC-' . date('Ymd') . '-' . str_pad(IncomeTransaction::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT))
+                    ->disabled()
+                    ->dehydrated()
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Forms\Components\DatePicker::make('transaction_date')
-                    ->required(),
-                Forms\Components\TextInput::make('income_type')
-                    ->required(),
+                    ->label('Tanggal Transaksi')
+                    ->required()
+                    ->default(now()),
+                Forms\Components\Select::make('income_type')
+                    ->label('Jenis Pemasukan')
+                    ->options([
+                        'sales' => 'Penjualan',
+                        'capital' => 'Tambah Modal',
+                        'other' => 'Lainnya',
+                    ])
+                    ->required()
+                    ->default('sales')
+                    ->reactive(),
+                Forms\Components\Select::make('order_id')
+                    ->label('Order (Opsional)')
+                    ->relationship('order', 'id')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "#{$record->id} - {$record->customer->name} ({$record->quantity_kg} kg)")
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (Forms\Get $get) => $get('income_type') === 'sales'),
                 Forms\Components\TextInput::make('amount')
+                    ->label('Jumlah')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('Rp')
+                    ->minValue(0),
                 Forms\Components\Textarea::make('description')
+                    ->label('Deskripsi')
                     ->required()
+                    ->rows(3)
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('order_id')
-                    ->numeric(),
-                Forms\Components\TextInput::make('payment_method')
-                    ->required(),
+                Forms\Components\Select::make('payment_method')
+                    ->label('Metode Pembayaran')
+                    ->options([
+                        'cash' => 'Tunai',
+                        'bank_transfer' => 'Transfer Bank',
+                        'other' => 'Lainnya',
+                    ])
+                    ->required()
+                    ->default('cash'),
                 Forms\Components\Textarea::make('notes')
+                    ->label('Catatan')
+                    ->rows(2)
                     ->columnSpanFull(),
             ]);
     }
@@ -49,40 +100,82 @@ class IncomeTransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('transaction_code')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('transaction_date')
-                    ->date()
+                    ->label('Tanggal')
+                    ->date('d M Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('income_type')
+                    ->label('Jenis')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'sales' => 'Penjualan',
+                        'capital' => 'Tambah Modal',
+                        'other' => 'Lainnya',
+                        default => $state,
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'sales' => 'success',
+                        'capital' => 'info',
+                        'other' => 'warning',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Deskripsi')
+                    ->limit(50)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('order_id')
-                    ->numeric()
+                    ->label('Jumlah')
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_method')
-                    ->searchable(),
+                    ->label('Metode Bayar')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'cash' => 'Tunai',
+                        'bank_transfer' => 'Transfer',
+                        'other' => 'Lainnya',
+                        default => $state,
+                    }),
+                Tables\Columns\TextColumn::make('order.customer.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('income_type')
+                    ->label('Jenis')
+                    ->options([
+                        'sales' => 'Penjualan',
+                        'capital' => 'Tambah Modal',
+                        'other' => 'Lainnya',
+                    ]),
+                Tables\Filters\SelectFilter::make('payment_method')
+                    ->label('Metode Pembayaran')
+                    ->options([
+                        'cash' => 'Tunai',
+                        'bank_transfer' => 'Transfer Bank',
+                        'other' => 'Lainnya',
+                    ]),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('transaction_date', 'desc');
     }
 
     public static function getRelations(): array

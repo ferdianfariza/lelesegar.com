@@ -17,25 +17,63 @@ class EquityTransactionResource extends Resource
 {
     protected static ?string $model = EquityTransaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationGroup = 'Setup Awal';
+    protected static ?int $navigationSort = 3;
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Modal & Prive';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Transaksi Modal';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Transaksi Modal';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('transaction_code')
-                    ->required(),
+                    ->label('Kode Transaksi')
+                    ->default(fn () => 'EQ-' . date('Ymd') . '-' . str_pad(EquityTransaction::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT))
+                    ->disabled()
+                    ->dehydrated()
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Forms\Components\DatePicker::make('transaction_date')
-                    ->required(),
-                Forms\Components\TextInput::make('equity_type')
-                    ->required(),
+                    ->label('Tanggal')
+                    ->required()
+                    ->default(now()),
+                Forms\Components\Select::make('equity_type')
+                    ->label('Jenis Transaksi')
+                    ->options([
+                        'initial_capital' => 'Modal Awal',
+                        'additional_capital' => 'Tambah Modal',
+                        'owner_withdrawal' => 'Prive (Pengambilan Pemilik)',
+                    ])
+                    ->required()
+                    ->default('initial_capital'),
                 Forms\Components\TextInput::make('amount')
+                    ->label('Jumlah')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('Rp')
+                    ->minValue(0),
                 Forms\Components\Textarea::make('description')
+                    ->label('Deskripsi')
                     ->required()
+                    ->rows(3)
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('notes')
+                    ->label('Catatan')
+                    ->rows(2)
                     ->columnSpanFull(),
             ]);
     }

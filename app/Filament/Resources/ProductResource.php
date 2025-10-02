@@ -17,29 +17,61 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-cube';
+    protected static ?string $navigationGroup = 'Setup Awal';
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Produk';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Produk';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Produk';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->required(),
+                    ->label('Nama Produk')
+                    ->required()
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('code')
-                    ->required(),
+                    ->label('Kode Produk')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
                 Forms\Components\Textarea::make('description')
+                    ->label('Deskripsi')
+                    ->rows(3)
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('selling_price')
+                    ->label('Harga Jual')
                     ->required()
                     ->numeric()
+                    ->prefix('Rp')
                     ->default(0),
                 Forms\Components\TextInput::make('cost_price')
+                    ->label('Harga Beli/Modal')
                     ->required()
                     ->numeric()
+                    ->prefix('Rp')
                     ->default(0),
                 Forms\Components\TextInput::make('unit')
-                    ->required(),
+                    ->label('Satuan')
+                    ->required()
+                    ->default('kg'),
                 Forms\Components\Toggle::make('is_active')
+                    ->label('Aktif')
+                    ->default(true)
                     ->required(),
             ]);
     }
@@ -48,34 +80,44 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('code')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nama Produk')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('selling_price')
-                    ->numeric()
+                    ->label('Harga Jual')
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('cost_price')
-                    ->numeric()
+                    ->label('Harga Beli')
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('unit')
+                    ->label('Satuan')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Status')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Aktif')
+                    ->falseLabel('Tidak Aktif'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
