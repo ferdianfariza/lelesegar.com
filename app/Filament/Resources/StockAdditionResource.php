@@ -49,7 +49,7 @@ class StockAdditionResource extends Resource
                     ->required()
                     ->numeric()
                     ->minValue(0)
-                    ->suffix(fn (Forms\Get $get) => {
+                    ->suffix(function (Forms\Get $get) {
                         if ($get('product_id')) {
                             $product = \App\Models\Product::find($get('product_id'));
                             return $product ? $product->unit : '';

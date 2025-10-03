@@ -74,7 +74,7 @@ class IncomeTransactionResource extends Resource
                     ->numeric()
                     ->required(fn (Forms\Get $get) => $get('income_type') === 'sales')
                     ->visible(fn (Forms\Get $get) => $get('income_type') === 'sales')
-                    ->suffix(fn (Forms\Get $get) => {
+                    ->suffix(function (Forms\Get $get) {
                         if ($get('product_id')) {
                             $product = \App\Models\Product::find($get('product_id'));
                             return $product ? $product->unit : '';
