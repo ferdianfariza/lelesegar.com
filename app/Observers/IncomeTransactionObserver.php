@@ -14,6 +14,28 @@ class IncomeTransactionObserver
      */
     public function created(IncomeTransaction $incomeTransaction): void
     {
+        // Reduce inventory if this is a sales transaction with product
+        if ($incomeTransaction->income_type === 'sales' && $incomeTransaction->product_id && $incomeTransaction->quantity) {
+            $inventory = \App\Models\Inventory::where('product_id', $incomeTransaction->product_id)->first();
+            if ($inventory) {
+                $quantityBefore = $inventory->quantity;
+                $inventory->quantity -= $incomeTransaction->quantity;
+                $inventory->save();
+
+                // Record inventory movement
+                \App\Models\InventoryMovement::create([
+                    'product_id' => $incomeTransaction->product_id,
+                    'movement_type' => 'out',
+                    'quantity' => $incomeTransaction->quantity,
+                    'quantity_before' => $quantityBefore,
+                    'quantity_after' => $inventory->quantity,
+                    'reference_type' => get_class($incomeTransaction),
+                    'reference_id' => $incomeTransaction->id,
+                    'notes' => 'Penjualan: ' . $incomeTransaction->description,
+                ]);
+            }
+        }
+
         // Create journal entry for income transaction
         $journalEntry = JournalEntry::create([
             'entry_code' => 'JE-INC-' . $incomeTransaction->id,

@@ -61,13 +61,35 @@ class IncomeTransactionResource extends Resource
                     ->required()
                     ->default('sales')
                     ->reactive(),
-                Forms\Components\Select::make('order_id')
-                    ->label('Order (Opsional)')
-                    ->relationship('order', 'id')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "#{$record->id} - {$record->customer->name} ({$record->quantity_kg} kg)")
+                Forms\Components\Select::make('product_id')
+                    ->label('Produk')
+                    ->relationship('product', 'name')
                     ->searchable()
                     ->preload()
-                    ->visible(fn (Forms\Get $get) => $get('income_type') === 'sales'),
+                    ->required(fn (Forms\Get $get) => $get('income_type') === 'sales')
+                    ->visible(fn (Forms\Get $get) => $get('income_type') === 'sales')
+                    ->reactive(),
+                Forms\Components\TextInput::make('quantity')
+                    ->label('Kuantitas')
+                    ->numeric()
+                    ->required(fn (Forms\Get $get) => $get('income_type') === 'sales')
+                    ->visible(fn (Forms\Get $get) => $get('income_type') === 'sales')
+                    ->suffix(fn (Forms\Get $get) => {
+                        if ($get('product_id')) {
+                            $product = \App\Models\Product::find($get('product_id'));
+                            return $product ? $product->unit : '';
+                        }
+                        return '';
+                    })
+                    ->reactive()
+                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
+                        if ($get('product_id') && $state) {
+                            $product = \App\Models\Product::find($get('product_id'));
+                            if ($product) {
+                                $set('amount', $product->selling_price * $state);
+                            }
+                        }
+                    }),
                 Forms\Components\TextInput::make('amount')
                     ->label('Jumlah')
                     ->required()

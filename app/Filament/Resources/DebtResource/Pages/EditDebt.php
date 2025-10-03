@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\SettingResource\Pages;
+namespace App\Filament\Resources\DebtResource\Pages;
 
-use App\Filament\Resources\SettingResource;
+use App\Filament\Resources\DebtResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditSetting extends EditRecord
+class EditDebt extends EditRecord
 {
-    protected static string $resource = SettingResource::class;
+    protected static string $resource = DebtResource::class;
 
     protected function getHeaderActions(): array
     {

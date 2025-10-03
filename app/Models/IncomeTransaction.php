@@ -13,18 +13,26 @@ class IncomeTransaction extends Model
         'amount',
         'description',
         'order_id',
+        'product_id',
+        'quantity',
         'payment_method',
         'notes',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'quantity' => 'decimal:2',
         'transaction_date' => 'date',
     ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function journalEntries()
