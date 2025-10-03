@@ -4,10 +4,10 @@ Composer 2.8.6
 Laravel 12.0 Ke Atas
 
 
-## 1. Clone this project 
+## Clone this project 
 `git clone https://github.com/ferdianfariza/lelesegar.com.git`
 
-## 2. Open file directory and install dependencies
+## Open file directory and install dependencies
 `composer install`
 `php artisan migrate`
 `php artisan db:seed`
