@@ -31,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         IncomeTransaction::observe(IncomeTransactionObserver::class);
         ExpenseTransaction::observe(ExpenseTransactionObserver::class);
         EquityTransaction::observe(EquityTransactionObserver::class);
+        \App\Models\StockAddition::observe(\App\Observers\StockAdditionObserver::class);
     }
 }

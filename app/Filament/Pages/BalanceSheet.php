@@ -91,8 +91,10 @@ class BalanceSheet extends Page implements HasForms
         $retainedEarnings = $totalIncome - $totalExpenses;
         $totalEquity = $equity - $ownerWithdrawals;
 
-        // For now, liabilities = 0 (you can expand this)
-        $totalLiabilities = 0;
+        // Calculate liabilities (debts)
+        $totalLiabilities = \App\Models\Debt::where('status', 'unpaid')
+            ->where('debt_date', '<=', $asOfDate)
+            ->sum('amount');
 
         return [
             'cash' => $cash,
