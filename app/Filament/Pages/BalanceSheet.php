@@ -62,49 +62,72 @@ class BalanceSheet extends Page implements HasForms
     {
         $asOfDate = $this->data['as_of_date'] ?? $this->as_of_date;
 
-        // Calculate cash balance (income - expenses)
+        // Get initial capital from income transactions
+        $initialCapital = IncomeTransaction::where('income_type', 'initial_capital')
+            ->where('transaction_date', '<=', $asOfDate)
+            ->sum('amount');
+
+        // Get total income and expenses
         $totalIncome = IncomeTransaction::where('transaction_date', '<=', $asOfDate)->sum('amount');
         $totalExpenses = ExpenseTransaction::where('transaction_date', '<=', $asOfDate)->sum('amount');
-        $cash = $totalIncome - $totalExpenses;
+        
+        // Get raw material purchases (total value of raw materials purchased)
+        $rawMaterialPurchases = \App\Models\RawMaterial::where('created_at', '<=', $asOfDate)
+            ->sum(\DB::raw('beginning_stock * price_per_unit'));
 
-        // Get inventory value
-        $inventoryValue = Inventory::with('product')
+        // Cash = total income - total expenses - raw material purchases
+        $cash = $totalIncome - $totalExpenses - $rawMaterialPurchases;
+
+        // Get raw material inventory value (ending stock value)
+        $rawMaterialInventoryValue = \App\Models\RawMaterial::where('created_at', '<=', $asOfDate)
             ->get()
-            ->sum(function ($inventory) {
-                return $inventory->quantity * $inventory->product->cost_price;
+            ->sum(function ($material) {
+                return $material->current_stock * $material->price_per_unit;
             });
 
-        // Get assets value
+        // Get fixed assets value from expense transactions (building, vehicle, equipment categories)
+        $fixedAssetsFromExpenses = ExpenseTransaction::whereHas('expenseCategory', function($query) {
+                $query->whereIn('code', ['PERALATAN', 'BANGUNAN', 'KENDARAAN']);
+            })
+            ->where('transaction_date', '<=', $asOfDate)
+            ->sum('amount');
+
+        // Get assets value from Asset table (for depreciation tracking)
         $assetsValue = Asset::where('purchase_date', '<=', $asOfDate)->sum('current_value');
 
-        $totalAssets = $cash + $inventoryValue + $assetsValue;
+        // Total assets = Cash + Raw Material Inventory + Fixed Assets
+        $totalAssets = $cash + $rawMaterialInventoryValue + $fixedAssetsFromExpenses;
 
-        // Calculate equity
-        $equity = EquityTransaction::whereIn('equity_type', ['initial_capital', 'additional_capital'])
+        // Calculate equity from Equity Statement ending equity
+        // Get sales revenue and expenses for the period
+        $salesRevenue = IncomeTransaction::where('income_type', 'sales')
             ->where('transaction_date', '<=', $asOfDate)
             ->sum('amount');
         
-        $ownerWithdrawals = EquityTransaction::where('equity_type', 'owner_withdrawal')
-            ->where('transaction_date', '<=', $asOfDate)
-            ->sum('amount');
-
-        $retainedEarnings = $totalIncome - $totalExpenses;
-        $totalEquity = $equity - $ownerWithdrawals;
+        $allExpenses = ExpenseTransaction::where('transaction_date', '<=', $asOfDate)->sum('amount');
+        $rawMaterialUsage = \App\Models\RawMaterialUsage::where('usage_date', '<=', $asOfDate)->sum('total_cost');
+        $totalExpensesForEquity = $allExpenses + $rawMaterialUsage;
+        
+        $netIncome = $salesRevenue - $totalExpensesForEquity;
+        $equity = $initialCapital + $netIncome;
 
         // Calculate liabilities (debts)
         $totalLiabilities = \App\Models\Debt::where('status', 'unpaid')
             ->where('debt_date', '<=', $asOfDate)
             ->sum('amount');
 
+        $totalEquity = $equity;
+
         return [
             'cash' => $cash,
-            'inventory_value' => $inventoryValue,
+            'raw_material_inventory_value' => $rawMaterialInventoryValue,
+            'fixed_assets_value' => $fixedAssetsFromExpenses,
             'assets_value' => $assetsValue,
             'total_assets' => $totalAssets,
             'total_liabilities' => $totalLiabilities,
+            'initial_capital' => $initialCapital,
+            'net_income' => $netIncome,
             'equity' => $equity,
-            'owner_withdrawals' => $ownerWithdrawals,
-            'retained_earnings' => $retainedEarnings,
             'total_equity' => $totalEquity,
             'as_of_date' => $asOfDate,
         ];

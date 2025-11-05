@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AccountSeeder::class,
             ExpenseCategorySeeder::class,
+            RawMaterialSeeder::class,
         ]);
     }
 }

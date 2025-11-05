@@ -23,7 +23,7 @@ class AssetResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return 'Aset/Peralatan';
+        return 'Aset';
     }
 
     public static function getModelLabel(): string
@@ -52,13 +52,13 @@ class AssetResource extends Resource
                 Forms\Components\Select::make('asset_type')
                     ->label('Jenis Aset')
                     ->options([
+                        'bangunan' => 'Bangunan',
                         'peralatan' => 'Peralatan',
-                        'perlengkapan' => 'Perlengkapan',
                         'kendaraan' => 'Kendaraan',
                         'lainnya' => 'Lainnya',
                     ])
                     ->required()
-                    ->default('peralatan'),
+                    ->default('bangunan'),
                 Forms\Components\Textarea::make('description')
                     ->label('Deskripsi')
                     ->rows(3)

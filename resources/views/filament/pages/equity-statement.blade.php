@@ -49,13 +49,6 @@
                         <span>{{ $data['net_income'] >= 0 ? '+' : '-' }} Rp {{ number_format(abs($data['net_income']), 0, ',', '.') }}</span>
                     </div>
 
-                    @if($data['owner_withdrawals'] > 0)
-                        <div class="flex justify-between ml-4 text-red-600">
-                            <span>Prive (Pengambilan Pemilik)</span>
-                            <span>- Rp {{ number_format($data['owner_withdrawals'], 0, ',', '.') }}</span>
-                        </div>
-                    @endif
-
                     <div class="flex justify-between pt-4 border-t-2 border-gray-300 text-xl font-bold">
                         <span>Modal Akhir</span>
                         <span>Rp {{ number_format($data['ending_equity'], 0, ',', '.') }}</span>

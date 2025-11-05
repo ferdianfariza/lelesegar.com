@@ -44,8 +44,8 @@
                         </div>
                         
                         <div class="flex justify-between ml-4">
-                            <span>Persediaan Barang</span>
-                            <span class="font-medium">Rp {{ number_format($data['inventory_value'], 0, ',', '.') }}</span>
+                            <span>Persediaan Bahan Baku</span>
+                            <span class="font-medium">Rp {{ number_format($data['raw_material_inventory_value'], 0, ',', '.') }}</span>
                         </div>
                     </div>
 
@@ -53,8 +53,8 @@
                         <div class="font-semibold">Aset Tetap</div>
                         
                         <div class="flex justify-between ml-4">
-                            <span>Peralatan</span>
-                            <span class="font-medium">Rp {{ number_format($data['assets_value'], 0, ',', '.') }}</span>
+                            <span>Peralatan, Bangunan, Kendaraan</span>
+                            <span class="font-medium">Rp {{ number_format($data['fixed_assets_value'], 0, ',', '.') }}</span>
                         </div>
                     </div>
 
@@ -81,31 +81,19 @@
                         <div class="font-semibold">Ekuitas</div>
                         
                         <div class="flex justify-between ml-4">
-                            <span>Modal</span>
+                            <span>Modal (dari Laporan Ekuitas)</span>
                             <span class="font-medium">Rp {{ number_format($data['equity'], 0, ',', '.') }}</span>
-                        </div>
-                        
-                        @if($data['owner_withdrawals'] > 0)
-                            <div class="flex justify-between ml-4 text-red-600">
-                                <span>Prive</span>
-                                <span>(Rp {{ number_format($data['owner_withdrawals'], 0, ',', '.') }})</span>
-                            </div>
-                        @endif
-                        
-                        <div class="flex justify-between ml-4">
-                            <span>Laba Ditahan</span>
-                            <span class="font-medium">Rp {{ number_format($data['retained_earnings'], 0, ',', '.') }}</span>
                         </div>
                         
                         <div class="flex justify-between ml-4 pt-2 border-t font-semibold">
                             <span>Total Ekuitas</span>
-                            <span>Rp {{ number_format($data['total_equity'] + $data['retained_earnings'], 0, ',', '.') }}</span>
+                            <span>Rp {{ number_format($data['total_equity'], 0, ',', '.') }}</span>
                         </div>
                     </div>
 
                     <div class="flex justify-between pt-4 border-t-2 border-gray-300 font-bold text-lg">
                         <span>Total Kewajiban & Ekuitas</span>
-                        <span>Rp {{ number_format($data['total_liabilities'] + $data['total_equity'] + $data['retained_earnings'], 0, ',', '.') }}</span>
+                        <span>Rp {{ number_format($data['total_liabilities'] + $data['total_equity'], 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>

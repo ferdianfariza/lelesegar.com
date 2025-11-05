@@ -67,33 +67,34 @@ class EquityStatement extends Page implements HasForms
         $startDate = $this->data['start_date'] ?? $this->start_date;
         $endDate = $this->data['end_date'] ?? $this->end_date;
 
-        // Get initial capital (before period)
-        $initialCapital = EquityTransaction::whereIn('equity_type', ['initial_capital', 'additional_capital'])
+        // Get initial capital from income transactions with type 'initial_capital' (before period)
+        $initialCapital = IncomeTransaction::where('income_type', 'initial_capital')
             ->where('transaction_date', '<', $startDate)
             ->sum('amount');
 
-        // Get additional capital during period
-        $additionalCapital = EquityTransaction::where('equity_type', 'additional_capital')
+        // Get additional capital from income transactions with type 'initial_capital' (during period)
+        $additionalCapital = IncomeTransaction::where('income_type', 'initial_capital')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->sum('amount');
 
-        // Calculate net income for the period
-        $revenue = IncomeTransaction::whereBetween('transaction_date', [$startDate, $endDate])->sum('amount');
+        // Calculate net income for the period from Income Statement
+        $salesRevenue = IncomeTransaction::where('income_type', 'sales')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        // Calculate all expenses including production expenses and raw material usage
         $expenses = ExpenseTransaction::whereBetween('transaction_date', [$startDate, $endDate])->sum('amount');
-        $netIncome = $revenue - $expenses;
+        $rawMaterialExpenses = \App\Models\RawMaterialUsage::whereBetween('usage_date', [$startDate, $endDate])->sum('total_cost');
+        $totalExpenses = $expenses + $rawMaterialExpenses;
+        
+        $netIncome = $salesRevenue - $totalExpenses;
 
-        // Get owner withdrawals
-        $ownerWithdrawals = EquityTransaction::where('equity_type', 'owner_withdrawal')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('amount');
-
-        $endingEquity = $initialCapital + $additionalCapital + $netIncome - $ownerWithdrawals;
+        $endingEquity = $initialCapital + $additionalCapital + $netIncome;
 
         return [
             'initial_capital' => $initialCapital,
             'additional_capital' => $additionalCapital,
             'net_income' => $netIncome,
-            'owner_withdrawals' => $ownerWithdrawals,
             'ending_equity' => $endingEquity,
             'start_date' => $startDate,
             'end_date' => $endDate,

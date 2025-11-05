@@ -17,6 +17,7 @@ class StockAdditionResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-plus-circle';
     protected static ?string $navigationGroup = 'Transaksi';
     protected static ?int $navigationSort = 5;
+    protected static bool $shouldRegisterNavigation = false; // Hide from navigation - replaced by RawMaterial
 
     public static function getNavigationLabel(): string
     {
