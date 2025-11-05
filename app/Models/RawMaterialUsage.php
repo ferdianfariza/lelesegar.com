@@ -27,13 +27,9 @@ class RawMaterialUsage extends Model
         return $this->belongsTo(RawMaterial::class);
     }
 
-    // Auto-calculate total cost before saving
-    protected static function boot()
+    // Calculate total cost
+    public function calculateTotalCost()
     {
-        parent::boot();
-
-        static::saving(function ($usage) {
-            $usage->total_cost = $usage->quantity * $usage->price_per_unit;
-        });
+        $this->total_cost = $this->quantity * $this->price_per_unit;
     }
 }
