@@ -20,6 +20,7 @@ class InventoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
     protected static ?string $navigationGroup = 'Laporan';
     protected static ?int $navigationSort = 1;
+    protected static bool $shouldRegisterNavigation = false; // Hide from navigation
 
     public static function getNavigationLabel(): string
     {

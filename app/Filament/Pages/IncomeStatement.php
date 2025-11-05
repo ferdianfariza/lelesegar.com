@@ -66,20 +66,46 @@ class IncomeStatement extends Page implements HasForms
         $startDate = $this->data['start_date'] ?? $this->start_date;
         $endDate = $this->data['end_date'] ?? $this->end_date;
 
-        // Calculate total revenue from sales
+        // Calculate total revenue from sales only
         $salesRevenue = IncomeTransaction::where('income_type', 'sales')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->sum('amount');
 
-        // Calculate other revenue
-        $otherRevenue = IncomeTransaction::whereIn('income_type', ['other'])
+        $totalRevenue = $salesRevenue;
+
+        // Calculate production expenses from expense transactions (beban produksi category)
+        $productionExpenses = ExpenseTransaction::whereHas('expenseCategory', function($query) {
+                $query->where('code', 'BEBAN_PRODUKSI');
+            })
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->sum('amount');
 
-        $totalRevenue = $salesRevenue + $otherRevenue;
+        // Calculate production expenses from raw material usage
+        $rawMaterialExpenses = \App\Models\RawMaterialUsage::whereBetween('usage_date', [$startDate, $endDate])
+            ->sum('total_cost');
 
-        // Calculate expenses by category
+        // Total production expenses
+        $totalProductionExpenses = $productionExpenses + $rawMaterialExpenses;
+
+        // Get raw material usage details for display
+        $rawMaterialUsageDetails = \App\Models\RawMaterialUsage::with('rawMaterial')
+            ->whereBetween('usage_date', [$startDate, $endDate])
+            ->get()
+            ->groupBy('raw_material_id')
+            ->map(function ($group) {
+                return [
+                    'name' => $group->first()->rawMaterial->name,
+                    'quantity' => $group->sum('quantity'),
+                    'unit' => $group->first()->rawMaterial->unit,
+                    'amount' => $group->sum('total_cost'),
+                ];
+            });
+
+        // Calculate expenses by category (excluding beban produksi as it's shown separately)
         $expenses = ExpenseTransaction::with('expenseCategory')
+            ->whereHas('expenseCategory', function($query) {
+                $query->where('code', '!=', 'BEBAN_PRODUKSI');
+            })
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->get()
             ->groupBy('expense_category_id')
@@ -90,13 +116,16 @@ class IncomeStatement extends Page implements HasForms
                 ];
             });
 
-        $totalExpenses = $expenses->sum('amount');
+        $totalExpenses = $expenses->sum('amount') + $totalProductionExpenses;
         $netIncome = $totalRevenue - $totalExpenses;
 
         return [
             'sales_revenue' => $salesRevenue,
-            'other_revenue' => $otherRevenue,
             'total_revenue' => $totalRevenue,
+            'production_expenses' => $productionExpenses,
+            'raw_material_expenses' => $rawMaterialExpenses,
+            'total_production_expenses' => $totalProductionExpenses,
+            'raw_material_usage_details' => $rawMaterialUsageDetails,
             'expenses' => $expenses,
             'total_expenses' => $totalExpenses,
             'net_income' => $netIncome,

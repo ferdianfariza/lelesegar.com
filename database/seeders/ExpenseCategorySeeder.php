@@ -14,15 +14,12 @@ class ExpenseCategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['code' => 'GAJI', 'name' => 'Gaji Karyawan', 'description' => 'Biaya gaji karyawan'],
-            ['code' => 'BAHAN', 'name' => 'Pembelian Bahan Baku', 'description' => 'Pembelian bahan baku produksi'],
-            ['code' => 'LISTRIK', 'name' => 'Listrik', 'description' => 'Biaya listrik'],
-            ['code' => 'AIR', 'name' => 'Air', 'description' => 'Biaya air'],
-            ['code' => 'TELP', 'name' => 'Telepon & Internet', 'description' => 'Biaya komunikasi'],
-            ['code' => 'TRANS', 'name' => 'Transportasi', 'description' => 'Biaya transportasi'],
-            ['code' => 'MAINT', 'name' => 'Pemeliharaan', 'description' => 'Biaya pemeliharaan peralatan'],
-            ['code' => 'RENT', 'name' => 'Sewa', 'description' => 'Biaya sewa tempat usaha'],
-            ['code' => 'OTHER', 'name' => 'Lain-lain', 'description' => 'Biaya operasional lainnya'],
+            ['code' => 'PERALATAN', 'name' => 'Peralatan', 'description' => 'Pembelian peralatan usaha'],
+            ['code' => 'BANGUNAN', 'name' => 'Bangunan', 'description' => 'Pembelian atau renovasi bangunan'],
+            ['code' => 'KENDARAAN', 'name' => 'Kendaraan', 'description' => 'Pembelian kendaraan'],
+            ['code' => 'BEBAN_PRODUKSI', 'name' => 'Beban Produksi', 'description' => 'Beban produksi dan operasional'],
+            ['code' => 'PRIVE', 'name' => 'Prive', 'description' => 'Pengambilan pemilik'],
+            ['code' => 'LAINNYA', 'name' => 'Lainnya', 'description' => 'Pengeluaran lainnya'],
         ];
 
         foreach ($categories as $category) {

@@ -7,10 +7,12 @@ use App\Models\Product;
 use App\Models\IncomeTransaction;
 use App\Models\ExpenseTransaction;
 use App\Models\EquityTransaction;
+use App\Models\RawMaterialUsage;
 use App\Observers\ProductObserver;
 use App\Observers\IncomeTransactionObserver;
 use App\Observers\ExpenseTransactionObserver;
 use App\Observers\EquityTransactionObserver;
+use App\Observers\RawMaterialUsageObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,5 +34,6 @@ class AppServiceProvider extends ServiceProvider
         ExpenseTransaction::observe(ExpenseTransactionObserver::class);
         EquityTransaction::observe(EquityTransactionObserver::class);
         \App\Models\StockAddition::observe(\App\Observers\StockAdditionObserver::class);
+        RawMaterialUsage::observe(RawMaterialUsageObserver::class);
     }
 }

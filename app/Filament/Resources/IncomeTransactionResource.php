@@ -55,6 +55,7 @@ class IncomeTransactionResource extends Resource
                     ->label('Jenis Pemasukan')
                     ->options([
                         'sales' => 'Penjualan',
+                        'initial_capital' => 'Modal Awal',
                         'capital' => 'Tambah Modal',
                         'other' => 'Lainnya',
                     ])
@@ -134,12 +135,14 @@ class IncomeTransactionResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'sales' => 'Penjualan',
+                        'initial_capital' => 'Modal Awal',
                         'capital' => 'Tambah Modal',
                         'other' => 'Lainnya',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'sales' => 'success',
+                        'initial_capital' => 'primary',
                         'capital' => 'info',
                         'other' => 'warning',
                         default => 'gray',
@@ -176,6 +179,7 @@ class IncomeTransactionResource extends Resource
                     ->label('Jenis')
                     ->options([
                         'sales' => 'Penjualan',
+                        'initial_capital' => 'Modal Awal',
                         'capital' => 'Tambah Modal',
                         'other' => 'Lainnya',
                     ]),
