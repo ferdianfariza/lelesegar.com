@@ -41,11 +41,6 @@
                             <span class="font-medium">Rp {{ number_format($data['sales_revenue'], 0, ',', '.') }}</span>
                         </div>
                         
-                        <div class="flex justify-between">
-                            <span class="ml-4">Pendapatan Lain-lain</span>
-                            <span class="font-medium">Rp {{ number_format($data['other_revenue'], 0, ',', '.') }}</span>
-                        </div>
-                        
                         <div class="flex justify-between font-bold pt-2 border-t">
                             <span>Total Pendapatan</span>
                             <span>Rp {{ number_format($data['total_revenue'], 0, ',', '.') }}</span>
@@ -58,6 +53,40 @@
                     <h3 class="text-lg font-semibold mb-3">Beban</h3>
                     
                     <div class="space-y-2">
+                        <!-- Production Expenses -->
+                        <div class="mt-2">
+                            <div class="flex justify-between font-semibold">
+                                <span class="ml-2">Beban Produksi</span>
+                                <span></span>
+                            </div>
+                            
+                            @if($data['production_expenses'] > 0)
+                                <div class="flex justify-between">
+                                    <span class="ml-6">Beban Produksi Lainnya</span>
+                                    <span class="font-medium">Rp {{ number_format($data['production_expenses'], 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            
+                            <!-- Raw Material Usage Details -->
+                            @if($data['raw_material_usage_details']->count() > 0)
+                                <div class="ml-6 mt-2">
+                                    <div class="text-sm font-medium mb-1">Bahan Baku yang Digunakan:</div>
+                                    @foreach($data['raw_material_usage_details'] as $material)
+                                        <div class="flex justify-between text-sm">
+                                            <span class="ml-4">{{ $material['name'] }} ({{ number_format($material['quantity'], 2) }} {{ $material['unit'] }})</span>
+                                            <span class="font-medium">Rp {{ number_format($material['amount'], 0, ',', '.') }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                            
+                            <div class="flex justify-between font-semibold pt-2 border-t mt-2">
+                                <span class="ml-4">Total Beban Produksi</span>
+                                <span>Rp {{ number_format($data['total_production_expenses'], 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Other Expenses -->
                         @foreach($data['expenses'] as $expense)
                             <div class="flex justify-between">
                                 <span class="ml-4">{{ $expense['category'] }}</span>
